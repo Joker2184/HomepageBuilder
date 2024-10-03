@@ -1,0 +1,39 @@
+project.init: "初始化中..."
+project.load.basic_res: "正在加載基礎資源"
+project.load.modules: "正在加载模块"
+project.load.plugins: "正在加載模塊"
+project.load.success: "工程加載完畢！"
+project.import.start: "正在導入工程包: ${path}"
+project.import.pack.version: "工程包版本: ${version}"
+project.import.cards: '導入卡片中'
+project.import.resources: '導入資源中'
+project.import.pages: '导入页面中'
+project.import.modules: '導入頁面中'
+project.import.success: '導入完成'
+project.get_card: '獲取卡片: ${card_ref}'
+project.get_card.null: '跳過空卡片'
+project.get_card.failed: '由於以下原因，獲取卡片失敗: ${ex}'
+project.gen_page.start: '正在獲取頁麵 ${page} 的代碼, 參數：${args}'
+project.gen_page.failed.notfound: '無法找到名為 ${page} 的頁麵'
+project.check_module_list.error: '無法找到需求的模塊:${wait_list}'
+module.load: '加載腳本: ${name}'
+module.load.success: '成功加載腳本: ${name}'
+module.reload: '重載腳本: ${name}'
+module.page.import.start: '開始加載代碼驅動頁麵'
+module.page.import.one.init: '加載代碼驅動頁麵：${name}'
+module.page.import.one.add: '注冊代碼驅動頁麵：${name}'
+module.page.import.success: '加載代碼驅動頁麵完成'
+script.invoke.failed.notfound: '嚐試調用不存在的腳本 ${name}'
+resource.load: '正在加載資源包: ${path}'
+library.load: '正在加載庫: ${name}'
+server.init: '服務器初始化中'
+server.start: '服務器在端口 ${port} 上啟動'
+server.request.received: '收到訪問請求：${page} 頁麵，參數： ${args}'
+server.request.response.json: '以 Json 返回對${page}的請求'
+server.request.response.page: '以 內容頁麵 返回對${page}的請求'
+server.request.response.not_found: '以 不存在該頁麵 返回對${page}的請求'
+server.request.response.error: '在返回對 ${page} 伴有參數 ${args} 的請求時發生了錯誤'
+page.not_found: '無法找到頁麵 ${page}'
+debug.timer.start: '${func}(${count}) 計時器啟動'
+debug.timer.stop: '${func}(${count}) 計時器停止，該函數運行時間: ${time}s'
+event.triggered: '事件 ${event_name} 被觸發'
