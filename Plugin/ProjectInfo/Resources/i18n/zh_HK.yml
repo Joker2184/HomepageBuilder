@@ -1,0 +1,4 @@
+projectinfo.git.version: "當前 git 倉庫版本: ${version}"
+projectinfo.git.disablehint: "若需要永久禁用 git 功能請在 config 中將 ProjectInfo.GitInfo.Enable 設為 False。隱藏該條提示請將 ProjectInfo.GitInfo.${hide_config_key} 設為 True"
+projectinfo.git.isnotrepo: "當前加載的工程可能未受到 git 管理，git 相關功能已被禁用。"
+projectinfo.git.notinstalled: "當前環境未安裝 git，相關功能已被禁用。"
