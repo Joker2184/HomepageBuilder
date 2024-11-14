@@ -1,0 +1,77 @@
+name: UpdateHP-Build
+
+on:
+  repository_dispatch:
+    types: [trigger-a-build]  # 监听来自 B 库的触发事件
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 从库 A 获取构建器
+      - name: Checkout Builder Repo (库 A)
+        uses: actions/checkout@v3
+        with:
+          repository: 'Joker2184/HomepageBuilder'  # A 库本身
+          token: ${{ secrets.PAT_TOKEN }}  # 使用 PAT 进行授权
+          path: builder-repo  # 检出到 builder-repo 目录
+
+      # 2. 从库 B 获取文件库
+      - name: Checkout File Repo (库 B)
+        uses: actions/checkout@v3
+        with:
+          repository: 'Joker2184/UpdateHomepage-Build'  # B 库
+          token: ${{ secrets.PAT_TOKEN }}  # 使用 PAT 进行授权
+          path: file-repo  # 检出到 file-repo 目录
+
+      # 3. 安装构建器
+      - name: Install the builder
+        run: |
+          cd builder-repo
+          pip install .  # 安装构建器
+
+      # 4. 安装构建器依赖
+      - name: Install dependencies for builder (requirements.txt)
+        run: |
+          cd builder-repo
+          pip install -r requirements.txt  # 安装构建器的依赖
+
+      # 5. 运行构建命令（在库 B 中），指定输出路径
+      - name: Run Build Command in File Repo (库 B)
+        run: |
+          cd file-repo  # 进入库 B 目录
+          mkdir -p ${GITHUB_WORKSPACE}/file-repo/github_output  # 确保输出目录存在
+          builder build --output-path ${GITHUB_WORKSPACE}/file-repo/github_output/UpdateHomepage.xaml  # 使用绝对路径指定输出文件
+
+      # 6. Checkout目标仓库（库 C）
+      - name: Checkout Target Repo (库 C)
+        uses: actions/checkout@v3
+        with:
+          repository: 'Joker2184/UpdateHomepage'  # 库 C 地址
+          token: ${{ secrets.PAT_TOKEN }}  # 使用 PAT 进行授权
+          path: target-repo  # 检出到 target-repo 目录
+
+      # 7. 删除库 C 中的老旧同名文件
+      - name: Delete old UpdateHomepage.xaml in target repo
+        run: |
+          cd target-repo
+          # 删除老的 UpdateHomepage.xaml 文件
+          if [ -f "UpdateHomepage.xaml" ]; then
+            rm -f "UpdateHomepage.xaml"
+          fi
+
+      # 8. 将构建文件推送到库 C
+      - name: Copy build files to target repo
+        run: |
+          cp -r ${GITHUB_WORKSPACE}/file-repo/github_output/* target-repo/  # 使用绝对路径从输出文件夹复制文件
+
+      # 9. 提交并推送到库 C
+      - name: Commit and push to target repo
+        run: |
+          cd target-repo
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .  # 添加新的文件
+          git commit -m "Add built files"
+          git push origin main  # 推送到库 C 的主分支
