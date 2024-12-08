@@ -1,7 +1,7 @@
 import functools
 from typing import Dict, List
 from ..logger import Logger
-# from ..i18n import locale
+from ..i18n import locale
 
 events:Dict[str,List[callable]] = {}
 logger = Logger('Event')
@@ -31,6 +31,9 @@ def set_triggers(event_name:str):
 def listen_event(event_name:str):
     '''监听事件'''
     def wrapper(func):
+        logger.debug(locale('event.subscribe',
+                            func=f'{func.__module__.replace("homepagebuilder.","Builder.")}:{func.__name__}',
+                            name=event_name))
         if event_name not in events:
             events[event_name] = []
         events[event_name].append(func)
@@ -42,7 +45,13 @@ def trigger_event(event_name:str,*args,**kwargs):
     if not actions_list:
         return
     for action in actions_list:
-        action(*args,**kwargs)
+        try:
+            action(*args,**kwargs)
+        except ResultOverride as ro:
+            raise ro
+        except Exception as ex:
+            logger.error(locale('event.error',eventname=event_name, ex=ex))
+            raise ex
 
 class ResultOverride(Exception):
     """在事件中抛出该异常以停止原函数以及尚未执行的触发器运行并输出结果"""

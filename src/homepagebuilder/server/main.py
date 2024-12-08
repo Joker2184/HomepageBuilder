@@ -3,16 +3,18 @@
 '''
 from flask import Flask, request, make_response
 from typing import Tuple, Union
+from werkzeug.middleware.proxy_fix import ProxyFix
 from ..core.project import PageNotFoundError
 from ..core.logger import Logger
 from .project_updater import request_update
 from .project_api import ProjectAPI
 from ..core.utils.property import PropertySetter
 from ..core.i18n import locale as t
-from ..core.config import config
+from ..core.config import config, is_debugging
 
 logger = Logger('Server')
 app = Flask(__name__)
+
 projapi = None
 
 class Server:
@@ -20,10 +22,21 @@ class Server:
         global projapi
         logger.info(t('server.init'))
         projapi = ProjectAPI(project_path)
+        self.limiter = None
+        self.init_server_config()
 
-    def run(self,port):
+    def init_server_config(self):
+        if config('Server.ProxyFix'):
+            app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+        if config('Server.RateLimit.Enable', False):
+            from flask_limiter import Limiter
+            from flask_limiter.util import get_remote_address
+            self.limiter = Limiter(get_remote_address, app = app,
+                            default_limits=config('Server.RateLimit.Rate.Default', ["10 per minute"]))
+
+    def run(self,port,flask_debug):
         logger.info(t('server.start',port=port))
-        app.run(port=port)
+        app.run(port=port,debug=flask_debug)
 
     def get_flask_app(self):
         return app
@@ -52,10 +65,13 @@ def index_page():
 @app.route("/<path:alias>")
 def getpage(alias:str):
     '''默认页面'''
+    args = request.args # 获取参数
+    if is_debugging():
+        logger.debug(t("server.request.received",page=alias,args=args))
+        if realip := request.headers.get('X-Real-IP'):
+            logger.debug(f"x_real_ip: {realip}")
     if alias.endswith('/version') or alias == 'version':
         return projapi.get_version(alias,request) # 获取版本号
-    args = request.args # 获取参数
-    logger.debug(t("server.request.received",page=alias,args=args))
     while alias.endswith('/'):
         alias = alias[:-1]
     mode = None

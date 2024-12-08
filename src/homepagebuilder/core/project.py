@@ -9,7 +9,7 @@ from .i18n import locale as t
 from .module_manager import load_module_dire,get_check_list
 from .utils.event import set_triggers
 from .utils.paths import fmtpath
-from ..debug import global_anlyzer as anl
+from .utils.checking import Version
 from .page import CardStackPage, RawXamlPage
 from .loader import Loader
 from .types import Project as ProjectBase
@@ -26,8 +26,6 @@ class Project(ProjectBase):
     @set_triggers('project.import')
     def import_pack(self, path):
         """导入工程包"""
-        anl.phase('加载工程包')
-        anl.switch_in()
         logger.info(t('project.import.start', path=path))
         self.__init_load_projectfile(path)
         self.__init_import_configs()
@@ -37,20 +35,35 @@ class Project(ProjectBase):
         self.__init_import_cards()
         self.__init_import_pages()
         self.__init_import_data()
-        anl.switch_out()
         logger.info(t('project.import.success'))
 
     @set_triggers('project.import.projectfile')
     def __init_load_projectfile(self,path):
-        anl.phase('读取工程文件')
         pack_info = File(path).read()
         self.base_path = os.path.dirname(path)
-        self.version = pack_info['version']
+        self.version = Version.from_string(pack_info['version'])
         self.default_page = pack_info.get('default_page')
-        logger.info(t('project.import.pack.version', version=self.version))
+        self.__check_version()
 
-    def  __init_import_configs(self):
-        anl.phase('导入配置')
+    def __check_version(self):
+        builder_version = Version.builder_version()
+        pack_version = self.version
+        if pack_version >> builder_version:
+            logger.warning(t('project.import.pack.version.too.new',
+                             packversion = pack_version,builderversion = builder_version))
+        elif pack_version << builder_version:
+            logger.warning(t('project.import.pack.version.too.old',
+                             packversion = pack_version,builderversion = builder_version))
+        elif pack_version > builder_version:
+            logger.info(t('project.import.pack.version.new',
+                          packversion = pack_version,builderversion = builder_version))
+        elif pack_version < builder_version:
+            logger.info(t('project.import.pack.version.old',
+                          packversion = pack_version,builderversion = builder_version))
+        else:
+            logger.info(t('project.import.pack.version', packversion=self.version))
+
+    def __init_import_configs(self):
         try:
             import_config_dire(fmtpath(self.base_path,'/configs'))
         except FileNotFoundError:
@@ -58,56 +71,46 @@ class Project(ProjectBase):
 
     @set_triggers('project.impoort.structures')
     def __init_import_structures(self):
-        anl.phase('导入构件')
-        self.__env['components'].update(Loader.load_compoents(
+        self.__context.components.update(Loader.load_compoents(
             fmtpath(self.base_path,'/structures/components')))
-        anl.phase('导入卡片模版')
-        self.__env['templates'].update(Loader.load_tempaltes(
+        self.__context.templates.update(Loader.load_tempaltes(
             fmtpath(self.base_path,'/structures/templates')))
-        anl.phase('导入页面模版')
-        self.__env['page_templates'].update(Loader.load_page_tempaltes(
+        self.__context.page_templates.update(Loader.load_page_tempaltes(
             fmtpath(self.base_path,'/structures/pagetemplates')))
 
     def __init_import_data(self):
-        anl.phase('读取数据文件')
-        self.__env['data'].update(Loader.create_structure_mapping(
+        self.__context.data.update(Loader.create_structure_mapping(
             fmtpath(self.base_path,'/data')))
 
     @set_triggers('project.import.modules')
     def __init_import_modules(self):
-        anl.phase('导入模块')
         logger.info(t('project.import.modules'))
         load_module_dire(fmtpath(self.base_path,'/modules'), self)
         self.__checkModuleWaitList()
-    
+
     @set_triggers('project.import.cards')
     def __init_import_cards(self):
-        anl.phase('导入卡片')
         logger.info(t('project.import.cards'))
         self.base_library = Library(File(
             fmtpath(self.base_path,"/libraries/__LIBRARY__.yml")).data)
 
     @set_triggers('project.import.resources')
     def __init_import_resources(self):
-        anl.phase('导入资源')
         logger.info(t('project.import.resources'))
-        self.__env['resources'].update(Loader.load_resources(
+        self.__context.resources.update(Loader.load_resources(
             fmtpath(self.base_path,'/resources')))
-    
+
     @set_triggers('project.import.pages')
     def __init_import_pages(self):
-        anl.phase('导入页面')
         logger.info(t('project.import.pages'))
         for pagefile in Dire(fmtpath(self.base_path,'/pages')).scan(recur=True):
             self.import_page_from_file(pagefile)
 
     @set_triggers('project.load')
     def __init__(self,builder, path):
-        anl.phase('初始化仓库类')
         logger.info(t('project.init'))
         super().__init__(builder=builder,path=path)
         logger.info(t('project.load.success'))
-        anl.pause()
 
     def import_page_from_file(self, page_file: File):
         """导入页面"""
@@ -139,10 +142,10 @@ class Project(ProjectBase):
             if not no_not_found_err_logging:
                 logger.error(t('project.gen_page.failed.notfound', page=page_alias))
             raise PageNotFoundError(page_alias)
-        env = self.get_environment_copy()
-        env.update(setter=setter)
-        env.update(used_resources=set())
-        xaml = self.pages[page_alias].generate(env = env)
+        context = self.get_context_copy()
+        context.setter=setter
+        context.used_resources=set()
+        xaml = self.pages[page_alias].generate(context = context)
         return xaml
 
     def get_page_content_type(self, page_alias, no_not_found_err_logging = False, setter = None):
@@ -151,7 +154,7 @@ class Project(ProjectBase):
                 logger.error(t('project.gen_page.failed.notfound', page=page_alias))
             raise PageNotFoundError(page_alias)
         return self.pages[page_alias].get_content_type(setter = setter)
-    
+
     def get_page_displayname(self, page_alias):
         """获取页面显示名"""
         page = self.pages.get(page_alias)
@@ -159,10 +162,10 @@ class Project(ProjectBase):
             raise PageNotFoundError(t('page.not_found',page = page_alias))
         return page.display_name
 
-    def set_env_data(self,key,value):
-        self.__env['data'][key] = value
+    def set_context_data(self,key,value):
+        self.__context.data[key] = value
     
-    def get_env_data(self,key):
-        return self.__env['data'].get(key)
+    def get_context_data(self,key):
+        return self.__context.data.get(key)
 class PageNotFoundError(Exception):
     """页面未找到错误"""

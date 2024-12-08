@@ -1,7 +1,9 @@
 builder.load.resources: 'Loading builder resources'
 debug.timer.start: '${func}(${count}) Timer Started'
 debug.timer.stop: '${func}(${count}) Timer Stopped, Time used: ${time}s'
+event.subscribe: '${func} subcribed event ${name}'
 event.triggered: 'Triggered event ${event_name}'
+event.error: 'An error raised duiring routing ${event_name}: ${ex}'
 io.format.unsupported: 'File format (${exten}) of ${path} is unsupported.'
 library.load: 'Loading library: ${name}'
 resourceloader.load.resourcefile: 'Loading resources file: ${name}'
@@ -16,21 +18,26 @@ module.page.import.one.init: 'Load code-driven page: ${name}'
 module.page.import.one.add: 'Registed code-driven page:${name}'
 module.page.import.success: 'Load code-driven page successfully'
 page.not_found: 'Cannot find page named ${page}'
+page.generate.done: 'Generated page ${page}'
+page.get_card: 'Get card: ${card_ref}'
+page.get_card.null: 'Skiped null card'
+page.get_card.failed: 'Failed to get card due to: ${ex}'
 project.init: "Initializing.."
 project.load.basic_res: "Loading basic resources"
 project.load.modules: "Loading modules"
 project.load.plugins: "Loading plugins"
 project.load.success: "Pack loaded successful!"
 project.import.start: "Start to import pack at: ${path}"
-project.import.pack.version: "Pack version: ${version}"
+project.import.pack.version.too.new: "Pack version(${packversion}) is too newer than builder version(${packversion})"
+project.import.pack.version.too.old: "Pack version(${packversion}) is too older than builder version(${packversion})"
+project.import.pack.version.new: "Pack version(${packversion}) is newer than builder version(${packversion})"
+project.import.pack.version.old: "Pack version(${packversion}) is newer than builder version(${packversion})"
+project.import.pack.version: "Pack version: ${packversion}"
 project.import.cards: 'Loading cards'
 project.import.resources: 'Importing resources'
 project.import.pages: 'Loading pages'
 project.import.modules: 'Loading modules'
 project.import.success: 'Loading finished.'
-project.get_card: 'Get card: ${card_ref}'
-project.get_card.null: 'Skiped null card'
-project.get_card.failed: 'Failed to get card due to: ${ex}'
 project.gen_page.start: 'Getting codes of the page ${page}'
 project.gen_page.failed.notfound: 'Cannot find page named ${page}'
 project.check_module_list.error: 'Cannot find module(s): ${wait_list}'
