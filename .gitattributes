@@ -1,4 +1,0 @@
-*.xaml linguist-vendored=false
-*.xaml linguist-generated=false
-*.xaml linguist-documentation=false
-*.xaml linguist-detectable=true
