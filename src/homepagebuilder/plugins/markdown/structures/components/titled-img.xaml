@@ -1,4 +1,0 @@
-<StackPanel>
-<Image Style="{StaticResource InnerImage}" Source="${source}"/>
-<TextBlock Text="${title}" Style="{StaticResource imgTitle}" />
-</StackPanel>
