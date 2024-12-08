@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Builder Repo (库 A)
         uses: actions/checkout@v3
         with:
-          repository: 'Joker2184/HomepageBuilder'  # A 库本身
+          repository: 'Light-Beacon/HomepageBuilder'  # A 库本身
           token: ${{ secrets.PAT_TOKEN }}  # 使用 PAT 进行授权
           path: builder-repo  # 检出到 builder-repo 目录
 
