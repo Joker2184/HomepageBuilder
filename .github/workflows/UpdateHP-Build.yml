@@ -30,13 +30,7 @@ jobs:
         run: |
           cd builder-repo
           pip install .  # 安装构建器
-
-      # 4. 安装构建器依赖
-      - name: Install dependencies for builder (requirements.txt)
-        run: |
-          cd builder-repo
-          pip install -r requirement.txt  # 安装构建器的依赖
-
+          
       # 5. 运行构建命令（在库 B 中），指定输出路径
       - name: Run Build Command in File Repo (库 B)
         run: |
