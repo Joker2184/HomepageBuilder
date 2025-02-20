@@ -9,12 +9,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 从库 A 获取构建器
+      # 1. 从库 A 获取构建器（使用developing分支）
       - name: Checkout Builder Repo (库 A)
         uses: actions/checkout@v3
         with:
           repository: 'Light-Beacon/HomepageBuilder'  # A 库本身
           token: ${{ secrets.PAT_TOKEN }}  # 使用 PAT 进行授权
+          ref: developing  # 使用 developing 分支
           path: builder-repo  # 检出到 builder-repo 目录
 
       # 2. 从库 B 获取文件库
